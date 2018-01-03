@@ -5,7 +5,7 @@
   branch = "master"
   name = "github.com/antchfx/antch"
   packages = ["."]
-  revision = "0fea0ce2b11f0cbcf1516da300e5a0485b94b98b"
+  revision = "3224988d44ec21a3ac91b00f864508ecf40d7d2c"
 
 [[projects]]
   branch = "master"
