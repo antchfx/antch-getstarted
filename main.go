@@ -2,9 +2,12 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"os"
+	"os/signal"
 	"strings"
+	"syscall"
 
 	"github.com/antchfx/antch"
 	"github.com/antchfx/htmlquery"
@@ -68,7 +71,11 @@ func (s *dmozSpider) ServeSpider(c chan<- antch.Item, res *http.Response) {
 }
 
 func main() {
-	crawler := antch.NewCrawler()
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+
+	c := make(chan struct{})
+	crawler := &antch.Crawler{Exit: c}
 	crawler.UseCompression()
 
 	crawler.Handle("dmoztools.net", &dmozSpider{})
@@ -78,6 +85,13 @@ func main() {
 		"http://dmoztools.net/Computers/Programming/Languages/Python/Books/",
 		"http://dmoztools.net/Computers/Programming/Languages/Python/Resources/",
 	}
-	crawler.StartURLs(startURLs)
+
+	go func() {
+		crawler.StartURLs(startURLs)
+		<-sigs // `CTRL-C` to stop crawler.
+		close(c)
+	}()
+	// crawler is block waiting for a signal.
 	<-crawler.Exit
+	fmt.Println("exiting crawler")
 }
